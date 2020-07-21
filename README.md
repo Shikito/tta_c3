@@ -17,6 +17,6 @@ conda env create -f tta_c3.yml
 
 ## 仮想環境の更新(パッケージの追加/削除を反映)
 ```shell
-conda env export -n house_price_kaggle > house_price_kaggle.yml
-conda env update -f house_price_kaggle.yml
+conda env export -n tta_c3 > tta_c3.yml
+conda env update -f tta_c3.yml
 ```
