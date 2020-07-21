@@ -11,8 +11,8 @@
 ## 仮想環境のインストール
 tta_c3ディレクトリで以下を実行
 ```shell
-(Get-Content -Path "house_price_kaggle.yml" -Encoding Default) -join "`n" `  | % { [Text.Encoding]::UTF8.GetBytes($_) } ` | Set-Content -Path "house_price_kaggle.yml" -Encoding Byte
-conda env create -f house_price_kaggle.yml
+(Get-Content -Path "tta_c3.yml" -Encoding Default) -join "`n" `  | % { [Text.Encoding]::UTF8.GetBytes($_) } ` | Set-Content -Path "tta_c3.yml" -Encoding Byte
+conda env create -f tta_c3.yml
 ```
 
 ## 仮想環境の更新(パッケージの追加/削除を反映)
