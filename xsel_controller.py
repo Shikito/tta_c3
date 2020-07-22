@@ -15,8 +15,9 @@ class XselController:
             subprocess.Popen(XSEL_PATH)
             while (self.locate_png_element(r'png/err_228_callendar.png') is None) and \
                 (self.locate_png_element(r'png/err_c6e_servo.png') is None):
-                sleep(1)
-            pyautogui.click(1924, 1138) # click cancel button
+                sleep(2)
+            e2o_x, e2o_y = self.locate_png_element(r'png/err_228_ok.png')
+            pyautogui.click(e2o_x, e2o_y) # click cancel button
             print("Launched sucessfully !!")
 
     # ポジションのエディターを開く関数
@@ -27,10 +28,12 @@ class XselController:
             print('Position editor is already opened')
             return 0
         
+        sleep(0.3)
         pb_x, pb_y = self.locate_png_element(r'png/position_button.png')
         pyautogui.click(pb_x, pb_y)           # ポジションボタンをクリック
         sleep(0.1)
-        pyautogui.click(pb_x, pb_y+30)        # 編集ボタンをクリック。
+        pe_x, pe_y = self.locate_png_element(r'png/position_edit.png')
+        pyautogui.click(pe_x, pe_y)           # 編集ボタンをクリック。
         sleep(0.2)
         ob_x, ob_y = self.locate_png_element(r'png/ok_button.png') # OKボタンを検索
         sleep(0.1)
@@ -45,17 +48,19 @@ class XselController:
         return pyautogui.locateCenterOnScreen(
             png_file_path,
             grayscale=True,
-            confidence=0.9,
+            confidence=0.8,
         )
 
     # xselアプリを最前面に持ってくる関数
     def move_window_to_front(self):
+        # import ipdb; ipdb.set_trace()
+        sleep(0.1)
         i_x, i_y = self.locate_png_element(r'png/xsel_icon.png')
         pyautogui.click(i_x, i_y)
         if self.locate_png_element(r'png/position_button.png') is None:
             pyautogui.click()
             sleep(0.1)
-        pyautogui.moveRel(-100, -100)
+        pyautogui.moveRel(-200, -200)
 
     # xselアプリを右に配置する関数
     def move_window_to_right(self):
@@ -73,9 +78,15 @@ class XselController:
     # servoをオンにする関数
     def on_servo_motor(self):
         self.move_window_to_right()
-        if self.locate_png_element(r'png/sv_hm_mv_buttons__sv_on.png') is not None:
+        sv_on = pyautogui.locateCenterOnScreen(
+            r'png/sv_hm_mv_buttons__sv_on.png',
+            grayscale=True,
+            confidence=0.95, # svのon/offの区別のため。苦渋の策
+        )
+        if sv_on is not None:
             print('Servo motors are already on')
             return 0
+        
         print("Please Cancel the Emergency Mode")
         input("Release the Button and input Enter: ")
         shmb_ps = self.get_svhmmv_buttom_points()
@@ -88,18 +99,19 @@ class XselController:
     def get_svhmmv_buttom_points(self):
         self.move_window_to_right()
         shmb_x, shmb_y = self.locate_png_element(r'png/vel_mm_sec.png')
+
         return {
             'y':shmb_y,
             'x':shmb_x,
-            'x_sv_x':shmb_x - 436,
-            'x_hm_x':shmb_x - 395,
-            'x_mv_x':shmb_x - 369,
-            'y_sv_x':shmb_x - 294,
-            'y_hm_x':shmb_x - 255,
-            'y_mv_x':shmb_x - 231,
-            'z_sv_x':shmb_x - 144,
-            'z_hm_x':shmb_x - 104,
-            'z_mv_x':shmb_x - 79,
+            'x_sv_x':shmb_x - 367,
+            'x_hm_x':shmb_x - 341,
+            'x_mv_x':shmb_x - 313,
+            'y_sv_x':shmb_x - 238,
+            'y_hm_x':shmb_x - 214,
+            'y_mv_x':shmb_x - 188,
+            'z_sv_x':shmb_x - 103,
+            'z_hm_x':shmb_x - 86,
+            'z_mv_x':shmb_x - 61,
         }
 
     def move_to_home_position(self):
@@ -119,9 +131,13 @@ class XselController:
             raise ValueError('z must be 1 - 100')
         shmb = self.get_svhmmv_buttom_points()
 
-        nn1_x, nn1_y = self.locate_png_element(r'png/no_name_1.png') # Point(x=2781, y=323)        
-        axis1_x = nn1_x + 119
-        column1 = nn1_y + 25
+        nn1_x, nn1_y = self.locate_png_element(r'png/no_name.png') # Point(x=2781, y=323)        
+        axis1_x = nn1_x + 88
+        column1 = nn1_y + 17
+
+        # import ipdb; ipdb.set_trace()
+        # while True:
+        #     print(pyautogui.position())
 
         pyautogui.click(axis1_x, column1)
         pyautogui.press('up', presses=350) # 左上が0.000になるようにする。
@@ -130,41 +146,66 @@ class XselController:
         pyautogui.press('down', presses=x)
         pyautogui.click(shmb['x_mv_x'], shmb['y'])
         sleep(0.5)
-        while self.locate_png_element(r'png/moving.png') is not None:
-            sleep(0.1)
-        pyautogui.click(3603, 754)
-        pyautogui.press('up')
-        pyautogui.press('up', presses=x)
+        # import ipdb; ipdb.set_trace()
+        
+        while True:
+            moving = pyautogui.locateCenterOnScreen(
+                r'png/moving.png',
+                grayscale=True,
+                confidence=0.95, # svのon/offの区別のため。苦渋の策
+            )
+            sleep(0.01)
+            if moving is None:
+                break
+        pyautogui.click(axis1_x, column1)
+        pyautogui.press('up', presses=350) # 左上が0.000になるようにする。
+        pyautogui.press('left', presses=4) # 左上が0.000になるようにする。
+        
         pyautogui.press('right')
-
         pyautogui.press('down', presses=y)
         pyautogui.click(shmb['y_mv_x'], shmb['y'])
         sleep(0.5)
-        while self.locate_png_element(r'png/moving.png') is not None:
-            sleep(0.1)
-        pyautogui.click(3603, 754)
-        pyautogui.press('up')
-        pyautogui.press('up', presses=y)
-        pyautogui.press('right', presses=2)
+        while True:
+            moving = pyautogui.locateCenterOnScreen(
+                r'png/moving.png',
+                grayscale=True,
+                confidence=0.95, # svのon/offの区別のため。苦渋の策
+            )
+            sleep(0.01)
+            if moving is None:
+                break
+        pyautogui.click(axis1_x, column1)
+        pyautogui.press('up', presses=350) # 左上が0.000になるようにする。
+        pyautogui.press('left', presses=4) # 左上が0.000になるようにする。
         
+        pyautogui.press('right', presses=2)
         pyautogui.press('down', presses=z)
         pyautogui.click(shmb['z_mv_x'], shmb['y'])
         sleep(0.5)
-        while self.locate_png_element(r'png/moving.png') is not None:
-            sleep(0.1)
-        pyautogui.press('up')
-        pyautogui.press('up', presses=z)
-        sleep(0.5)
+        while True:
+            moving = pyautogui.locateCenterOnScreen(
+                r'png/moving.png',
+                grayscale=True,
+                confidence=0.95, # svのon/offの区別のため。苦渋の策
+            )
+            sleep(0.01)
+            if moving is None:
+                break
+
 
 if __name__=="__main__":
+
+    # while True:
+    #     print(pyautogui.position())
+
     xc = XselController()
     xc.open_position_editor()
     xc.on_servo_motor()
-    xc.move_to_x_y_z(1, 1, 1)
-    xc.move_to_x_y_z(100, 100, 50)
-    xc.move_to_x_y_z(300, 249, 100)
+    # xc.move_to_x_y_z(1, 1, 1)
+    # xc.move_to_x_y_z(100, 100, 50)
+    # xc.move_to_x_y_z(300, 249, 100)
 
-    # xc.move_to_home_position()
+    xc.move_to_home_position()
     # while True:
     #     print(pyautogui.position())
-    
+    # import ipdb; ipdb.set_trace()
